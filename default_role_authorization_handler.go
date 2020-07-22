@@ -15,18 +15,18 @@ func NewRoleAuthorizationHandler(sortedRoles bool) *DefaultRoleAuthorizationHand
 
 func (h *DefaultRoleAuthorizationHandler) Authorize(next http.Handler, roles []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userRoles := h.getRolesFromContext(r)
+		userRoles := GetRolesFromContext(r)
 		if userRoles == nil || len(*userRoles) == 0 {
 			http.Error(w, "No Permission: Require roles for this user", http.StatusForbidden)
 			return
 		}
 		if h.sortedRoles {
-			if h.hasSortedRole(roles, *userRoles) {
+			if HasSortedRole(roles, *userRoles) {
 				next.ServeHTTP(w, r)
 				return
 			}
 		}
-		if h.hasRole(roles, *userRoles) {
+		if HasRole(roles, *userRoles) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -34,28 +34,7 @@ func (h *DefaultRoleAuthorizationHandler) Authorize(next http.Handler, roles []s
 	})
 }
 
-func (h *DefaultRoleAuthorizationHandler) hasRole(roles []string, userRoles []string) bool {
-	for _, role := range roles {
-		for _, userRole := range userRoles {
-			if role == userRole {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func (h *DefaultRoleAuthorizationHandler) hasSortedRole(roles []string, userRoles []string) bool {
-	for _, role := range roles {
-		i := sort.SearchStrings(userRoles, role)
-		if i >= 0 && userRoles[i] == role {
-			return true
-		}
-	}
-	return false
-}
-
-func (h *DefaultRoleAuthorizationHandler) getRolesFromContext(r *http.Request) *[]string {
+func GetRolesFromContext(r *http.Request) *[]string {
 	token := r.Context().Value(Authorization)
 	if token != nil {
 		if authorizationToken, exist := token.(map[string]interface{}); exist {
@@ -69,4 +48,25 @@ func (h *DefaultRoleAuthorizationHandler) getRolesFromContext(r *http.Request) *
 		}
 	}
 	return nil
+}
+
+func HasRole(roles []string, userRoles []string) bool {
+	for _, role := range roles {
+		for _, userRole := range userRoles {
+			if role == userRole {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func HasSortedRole(roles []string, userRoles []string) bool {
+	for _, role := range roles {
+		i := sort.SearchStrings(userRoles, role)
+		if i >= 0 && userRoles[i] == role {
+			return true
+		}
+	}
+	return false
 }

@@ -15,7 +15,7 @@ func NewUserAuthorizationHandler(sortedUsers bool) *DefaultUserAuthorizationHand
 
 func (h *DefaultUserAuthorizationHandler) Authorize(next http.Handler, users []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId := h.getUserIdFromContext(r)
+		userId := GetUserIdFromContext(r)
 		if len(userId) == 0 {
 			http.Error(w, "Invalid User Id", http.StatusBadRequest)
 			return
@@ -53,14 +53,4 @@ func (h *DefaultUserAuthorizationHandler) hasSortedUser(currentUser string, user
 		return true
 	}
 	return false
-}
-
-func (h *DefaultUserAuthorizationHandler) getUserIdFromContext(r *http.Request) string {
-	token := r.Context().Value(Authorization)
-	if token != nil {
-		if authorizationToken, exist := token.(map[string]interface{}); exist {
-			return GetUserId(authorizationToken)
-		}
-	}
-	return ""
 }

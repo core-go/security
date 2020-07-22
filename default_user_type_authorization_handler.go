@@ -11,12 +11,12 @@ func NewUserTypeAuthorizationHandler() *DefaultUserTypeAuthorizationHandler {
 
 func (h *DefaultUserTypeAuthorizationHandler) Authorize(next http.Handler, userTypes []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userType := h.getUserTypeFromContext(r)
+		userType := GetUserTypeFromContext(r)
 		if userType == nil || len(*userType) == 0 {
 			http.Error(w, "No Permission: Require User Type", http.StatusForbidden)
 			return
 		}
-		if h.hasUserType(userTypes, *userType) {
+		if HasUserType(userTypes, *userType) {
 			next.ServeHTTP(w, r)
 		} else {
 			http.Error(w, "No Permission", http.StatusForbidden)
@@ -24,16 +24,7 @@ func (h *DefaultUserTypeAuthorizationHandler) Authorize(next http.Handler, userT
 	})
 }
 
-func (h *DefaultUserTypeAuthorizationHandler) hasUserType(userTypes []string, userType string) bool {
-	for _, rt := range userTypes {
-		if rt == userType {
-			return true
-		}
-	}
-	return false
-}
-
-func (h *DefaultUserTypeAuthorizationHandler) getUserTypeFromContext(r *http.Request) *string {
+func GetUserTypeFromContext(r *http.Request) *string {
 	token := r.Context().Value(Authorization)
 	if token != nil {
 		if authorizationToken, exist := token.(map[string]interface{}); exist {
@@ -42,4 +33,13 @@ func (h *DefaultUserTypeAuthorizationHandler) getUserTypeFromContext(r *http.Req
 		}
 	}
 	return nil
+}
+
+func HasUserType(userTypes []string, userType string) bool {
+	for _, rt := range userTypes {
+		if rt == userType {
+			return true
+		}
+	}
+	return false
 }

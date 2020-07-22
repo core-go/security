@@ -1,6 +1,7 @@
 package security
 
+import "context"
+
 type PrivilegeService interface {
-	GetPrivilege(userId string, privilegeId string) int32
-	GetPrivileges(userId string) []string
+	GetPrivilege(ctx context.Context, userId string, privilegeId string) int32
 }
