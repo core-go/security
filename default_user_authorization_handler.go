@@ -25,12 +25,12 @@ func (h *DefaultUserAuthorizationHandler) Authorize(next http.Handler, users []s
 			return
 		}
 		if h.sortedUsers {
-			if h.hasSortedUser(userId, users) {
+			if HasSortedUser(userId, users) {
 				next.ServeHTTP(w, r)
 				return
 			}
 		}
-		if h.hasUser(userId, users) {
+		if HasUser(userId, users) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -38,7 +38,7 @@ func (h *DefaultUserAuthorizationHandler) Authorize(next http.Handler, users []s
 	})
 }
 
-func (h *DefaultUserAuthorizationHandler) hasUser(currentUser string, users []string) bool {
+func HasUser(currentUser string, users []string) bool {
 	for _, user := range users {
 		if user == currentUser {
 			return true
@@ -47,7 +47,7 @@ func (h *DefaultUserAuthorizationHandler) hasUser(currentUser string, users []st
 	return false
 }
 
-func (h *DefaultUserAuthorizationHandler) hasSortedUser(currentUser string, users []string) bool {
+func HasSortedUser(currentUser string, users []string) bool {
 	i := sort.SearchStrings(users, currentUser)
 	if i >= 0 && users[i] == currentUser {
 		return true
