@@ -2,6 +2,6 @@ package security
 
 import "net/http"
 
-type UserAuthorizationHandler interface {
+type UserAuthorizer interface {
 	Authorize(next http.Handler, users []string) http.Handler
 }

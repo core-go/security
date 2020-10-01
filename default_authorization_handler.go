@@ -2,16 +2,16 @@ package security
 
 import "net/http"
 
-type DefaultAuthorizationHandler struct {
+type DefaultAuthorizer struct {
 	PrivilegeService PrivilegeService
 	Exact            bool
 }
 
-func NewAuthorizationHandler(privilegeService PrivilegeService, exact bool) *DefaultAuthorizationHandler {
-	return &DefaultAuthorizationHandler{PrivilegeService: privilegeService, Exact: exact}
+func NewAuthorizer(privilegeService PrivilegeService, exact bool) *DefaultAuthorizer {
+	return &DefaultAuthorizer{PrivilegeService: privilegeService, Exact: exact}
 }
 
-func (h *DefaultAuthorizationHandler) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
+func (h *DefaultAuthorizer) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := GetUserIdFromContext(r)
 		if len(userId) == 0 {

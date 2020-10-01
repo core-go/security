@@ -2,14 +2,14 @@ package security
 
 import "net/http"
 
-type DefaultUserTypeAuthorizationHandler struct {
+type DefaultUserTypeAuthorizer struct {
 }
 
-func NewUserTypeAuthorizationHandler() *DefaultUserTypeAuthorizationHandler {
-	return &DefaultUserTypeAuthorizationHandler{}
+func NewUserTypeAuthorizer() *DefaultUserTypeAuthorizer {
+	return &DefaultUserTypeAuthorizer{}
 }
 
-func (h *DefaultUserTypeAuthorizationHandler) Authorize(next http.Handler, userTypes []string) http.Handler {
+func (h *DefaultUserTypeAuthorizer) Authorize(next http.Handler, userTypes []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userType := GetUserTypeFromContext(r)
 		if userType == nil || len(*userType) == 0 {

@@ -5,15 +5,15 @@ import (
 	"sort"
 )
 
-type DefaultUserAuthorizationHandler struct {
+type DefaultUserAuthorizer struct {
 	sortedUsers bool
 }
 
-func NewUserAuthorizationHandler(sortedUsers bool) *DefaultUserAuthorizationHandler {
-	return &DefaultUserAuthorizationHandler{sortedUsers}
+func NewUserAuthorizer(sortedUsers bool) *DefaultUserAuthorizer {
+	return &DefaultUserAuthorizer{sortedUsers}
 }
 
-func (h *DefaultUserAuthorizationHandler) Authorize(next http.Handler, users []string) http.Handler {
+func (h *DefaultUserAuthorizer) Authorize(next http.Handler, users []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := GetUserIdFromContext(r)
 		if len(userId) == 0 {

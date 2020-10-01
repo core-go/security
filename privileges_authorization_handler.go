@@ -2,17 +2,17 @@ package security
 
 import "net/http"
 
-type PrivilegesAuthorizationHandler struct {
+type PrivilegesAuthorizer struct {
 	sortedPrivilege   bool
 	exact             bool
 	privilegesService PrivilegesService
 }
 
-func NewPrivilegesAuthorizationHandler(sortedPrivilege bool, exact bool, privilegesService PrivilegesService) *PrivilegesAuthorizationHandler {
-	return &PrivilegesAuthorizationHandler{sortedPrivilege, exact, privilegesService}
+func NewPrivilegesAuthorizer(sortedPrivilege bool, exact bool, privilegesService PrivilegesService) *PrivilegesAuthorizer {
+	return &PrivilegesAuthorizer{sortedPrivilege, exact, privilegesService}
 }
 
-func (h *PrivilegesAuthorizationHandler) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
+func (h *PrivilegesAuthorizer) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := GetUserIdFromContext(r)
 		if len(userId) == 0 {

@@ -2,16 +2,16 @@ package security
 
 import "net/http"
 
-type TokenAuthorizationHandler struct {
+type TokenAuthorizer struct {
 	sortedPrivilege  bool
 	exact            bool
 }
 
-func NewTokenAuthorizationHandler(sortedPrivilege bool, exact bool) *TokenAuthorizationHandler {
-	return &TokenAuthorizationHandler{sortedPrivilege, exact}
+func NewTokenAuthorizationHandler(sortedPrivilege bool, exact bool) *TokenAuthorizer {
+	return &TokenAuthorizer{sortedPrivilege, exact}
 }
 
-func (h *TokenAuthorizationHandler) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
+func (h *TokenAuthorizer) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		privileges := GetPrivilegesFromContext(r)
 		if privileges == nil || len(privileges) == 0 {
