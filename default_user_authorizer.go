@@ -2,21 +2,22 @@ package security
 
 import (
 	"net/http"
-	"sort"
 )
 
 type DefaultUserAuthorizer struct {
-	sortedUsers bool
+	Authorization string
+	Key           string
+	sortedUsers   bool
 }
 
-func NewUserAuthorizer(sortedUsers bool) *DefaultUserAuthorizer {
-	return &DefaultUserAuthorizer{sortedUsers}
+func NewUserAuthorizer(authorization string, key string, sortedUsers bool) *DefaultUserAuthorizer {
+	return &DefaultUserAuthorizer{Authorization: authorization, Key: key, sortedUsers: sortedUsers}
 }
 
 func (h *DefaultUserAuthorizer) Authorize(next http.Handler, users []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId := GetUserIdFromContext(r)
-		if len(userId) == 0 {
+		user := ValueFromContext(r, h.Authorization, h.Key)
+		if len(user) == 0 {
 			http.Error(w, "Invalid User Id", http.StatusBadRequest)
 			return
 		}
@@ -25,32 +26,15 @@ func (h *DefaultUserAuthorizer) Authorize(next http.Handler, users []string) htt
 			return
 		}
 		if h.sortedUsers {
-			if HasSortedUser(userId, users) {
+			if IncludeOfSort(users, user) {
 				next.ServeHTTP(w, r)
 				return
 			}
 		}
-		if HasUser(userId, users) {
+		if Include(users, user) {
 			next.ServeHTTP(w, r)
 			return
 		}
 		http.Error(w, "No Permission", http.StatusForbidden)
 	})
-}
-
-func HasUser(currentUser string, users []string) bool {
-	for _, user := range users {
-		if user == currentUser {
-			return true
-		}
-	}
-	return false
-}
-
-func HasSortedUser(currentUser string, users []string) bool {
-	i := sort.SearchStrings(users, currentUser)
-	if i >= 0 && users[i] == currentUser {
-		return true
-	}
-	return false
 }

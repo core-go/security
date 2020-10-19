@@ -2,8 +2,6 @@ package security
 
 import "time"
 
-type TokenBlacklistService interface {
-	Revoke(token string, reason string, expires time.Time) error
-	RevokeAllTokens(id string, reason string) error
+type TokenBlacklistChecker interface {
 	Check(id string, token string, createAt time.Time) string
 }

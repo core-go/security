@@ -19,9 +19,9 @@ import "github.com/common-go/web-security"
 
 #### You can optimize the import by version:
 ##### v0.0.1: Authentication Handler
-##### v0.0.5: Authorization Handler
-##### v0.0.7: Token Authorization Handler
-- Privilege Authorization Handler
-- Role Authorization Handler
-- User Authorization Handler
-- User Type Authorization Handler
+##### v0.0.5: Authorizer
+##### v0.0.7: Token Authorizer
+- Privilege Authorizer
+- Role Authorizer
+- User Authorizer
+- User Type Authorizer

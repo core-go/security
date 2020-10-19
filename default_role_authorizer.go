@@ -6,16 +6,18 @@ import (
 )
 
 type DefaultRoleAuthorizer struct {
-	sortedRoles bool
+	Authorization string
+	Key           string
+	sortedRoles   bool
 }
 
-func NewRoleAuthorizer(sortedRoles bool) *DefaultRoleAuthorizer {
-	return &DefaultRoleAuthorizer{sortedRoles}
+func NewRoleAuthorizer(authorization string, key string, sortedRoles bool) *DefaultRoleAuthorizer {
+	return &DefaultRoleAuthorizer{Authorization: authorization, Key: key, sortedRoles: sortedRoles}
 }
 
 func (h *DefaultRoleAuthorizer) Authorize(next http.Handler, roles []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userRoles := GetRolesFromContext(r)
+		userRoles := ValuesFromContext(r, h.Authorization, h.Key)
 		if userRoles == nil || len(*userRoles) == 0 {
 			http.Error(w, "No Permission: Require roles for this user", http.StatusForbidden)
 			return

@@ -2,6 +2,6 @@ package security
 
 import "net/http"
 
-type AuthenticationHandler interface {
-	Authenticate(next http.Handler) http.Handler
+type AuthorizationChecker interface {
+	Check(next http.Handler) http.Handler
 }

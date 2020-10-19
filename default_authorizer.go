@@ -3,22 +3,24 @@ package security
 import "net/http"
 
 type DefaultAuthorizer struct {
-	PrivilegeService PrivilegeService
-	Exact            bool
+	Authorization   string
+	Key             string
+	PrivilegeLoader PrivilegeLoader
+	Exact           bool
 }
 
-func NewAuthorizer(privilegeService PrivilegeService, exact bool) *DefaultAuthorizer {
-	return &DefaultAuthorizer{PrivilegeService: privilegeService, Exact: exact}
+func NewAuthorizer(privilegeService PrivilegeLoader, exact bool) *DefaultAuthorizer {
+	return &DefaultAuthorizer{PrivilegeLoader: privilegeService, Exact: exact}
 }
 
 func (h *DefaultAuthorizer) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId := GetUserIdFromContext(r)
+		userId := ValueFromContext(r, h.Authorization, h.Key)
 		if len(userId) == 0 {
 			http.Error(w, "Invalid User Id", http.StatusBadRequest)
 			return
 		}
-		p := h.PrivilegeService.GetPrivilege(r.Context(), userId, privilegeId)
+		p := h.PrivilegeLoader.Privilege(r.Context(), userId, privilegeId)
 		if p == ActionNone {
 			http.Error(w, "No Permission for this user", http.StatusForbidden)
 			return
@@ -39,14 +41,4 @@ func (h *DefaultAuthorizer) Authorize(next http.Handler, privilegeId string, act
 		}
 		http.Error(w, "No Permission", http.StatusForbidden)
 	})
-}
-
-func GetUserIdFromContext(r *http.Request) string {
-	token := r.Context().Value(Authorization)
-	if token != nil {
-		if authorizationToken, exist := token.(map[string]interface{}); exist {
-			return GetUserId(authorizationToken)
-		}
-	}
-	return ""
 }
