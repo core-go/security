@@ -2,25 +2,25 @@ package security
 
 import "net/http"
 
-type DefaultAuthorizer struct {
-	Authorization   string
-	Key             string
-	PrivilegeLoader PrivilegeLoader
-	Exact           bool
+type DefaultSubAuthorizer struct {
+	Authorization      string
+	Key                string
+	SubPrivilegeLoader SubPrivilegeLoader
+	Exact              bool
 }
 
-func NewAuthorizer(privilegeLoader PrivilegeLoader, exact bool) *DefaultAuthorizer {
-	return &DefaultAuthorizer{PrivilegeLoader: privilegeLoader, Exact: exact}
+func NewSubAuthorizer(subPrivilegeLoader SubPrivilegeLoader, exact bool) *DefaultSubAuthorizer {
+	return &DefaultSubAuthorizer{SubPrivilegeLoader: subPrivilegeLoader, Exact: exact}
 }
 
-func (h *DefaultAuthorizer) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
+func (h *DefaultSubAuthorizer) Authorize(next http.Handler, privilegeId string, sub string, action int32) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := ValueFromContext(r, h.Authorization, h.Key)
 		if len(userId) == 0 {
 			http.Error(w, "Invalid User Id", http.StatusBadRequest)
 			return
 		}
-		p := h.PrivilegeLoader.Privilege(r.Context(), userId, privilegeId)
+		p := h.SubPrivilegeLoader.Privilege(r.Context(), userId, privilegeId, sub)
 		if p == ActionNone {
 			http.Error(w, "No Permission for this user", http.StatusForbidden)
 			return
