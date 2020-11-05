@@ -17,10 +17,10 @@ func (l SqlPrivilegeLoader) Privilege(ctx context.Context, userId string, privil
 	var permissions int32 = 0
 	err := l.DB.QueryRow(l.Query, userId, privilegeId).Scan(&permissions)
 	if err != nil {
-		return 0
+		return ActionNone
 	}
-	if permissions == 0 {
-		return 1
+	if permissions == ActionNone {
+		return ActionAll
 	}
 	return permissions
 }

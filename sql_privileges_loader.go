@@ -27,8 +27,12 @@ func (l SqlPrivilegesLoader) Privileges(ctx context.Context, userId string) []st
 		var id string
 		var permissions int32
 		if err = rows.Scan(&id, &permissions); err == nil {
-			x := id + " " + fmt.Sprintf("%X", permissions)
-			privileges = append(privileges, x)
+			if permissions != ActionNone {
+				x := id + " " + fmt.Sprintf("%X", permissions)
+				privileges = append(privileges, x)
+			} else {
+				privileges = append(privileges, id)
+			}
 		}
 	}
 	return privileges
