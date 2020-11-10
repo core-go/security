@@ -9,15 +9,23 @@ type DefaultSubAuthorizer struct {
 	Exact              bool
 }
 
-func NewSubAuthorizer(subPrivilegeLoader SubPrivilegeLoader, exact bool) *DefaultSubAuthorizer {
-	return &DefaultSubAuthorizer{SubPrivilegeLoader: subPrivilegeLoader, Exact: exact}
+func NewSubAuthorizer(subPrivilegeLoader SubPrivilegeLoader, exact bool, options ...string) *DefaultSubAuthorizer {
+	authorization := ""
+	key := "userId"
+	if len(options) >= 2 {
+		authorization = options[1]
+	}
+	if len(options) >= 1 {
+		key = options[0]
+	}
+	return &DefaultSubAuthorizer{SubPrivilegeLoader: subPrivilegeLoader, Exact: exact, Authorization: authorization, Key: key}
 }
 
 func (h *DefaultSubAuthorizer) Authorize(next http.Handler, privilegeId string, sub string, action int32) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := ValueFromContext(r, h.Authorization, h.Key)
 		if len(userId) == 0 {
-			http.Error(w, "Invalid User Id", http.StatusBadRequest)
+			http.Error(w, "Invalid User Id in http request", http.StatusForbidden)
 			return
 		}
 		p := h.SubPrivilegeLoader.Privilege(r.Context(), userId, privilegeId, sub)

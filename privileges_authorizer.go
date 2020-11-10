@@ -19,7 +19,7 @@ func (h *PrivilegesAuthorizer) Authorize(next http.Handler, privilegeId string, 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := ValueFromContext(r, h.Authorization, h.Key)
 		if len(userId) == 0 {
-			http.Error(w, "Invalid User Id", http.StatusBadRequest)
+			http.Error(w, "Invalid User Id", http.StatusForbidden)
 			return
 		}
 		privileges := h.privilegesLoader.Privileges(r.Context(), userId)

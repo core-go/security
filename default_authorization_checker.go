@@ -9,11 +9,15 @@ import (
 
 const (
 	Authorization = "authorization"
+	Uid           = "uid"
 	UserId        = "userId"
+	UserName      = "userName"
 	Username      = "username"
 	UserType      = "userType"
 	Roles         = "roles"
 	Privileges    = "privileges"
+	Permission    = "permission"
+	Permissions   = "permissions"
 	Ip            = "ip"
 )
 

@@ -7,7 +7,15 @@ type DefaultUserTypeAuthorizer struct {
 	Key           string
 }
 
-func NewUserTypeAuthorizer(authorization string, key string) *DefaultUserTypeAuthorizer {
+func NewUserTypeAuthorizer(options ...string) *DefaultUserTypeAuthorizer {
+	authorization := ""
+	key := "userId"
+	if len(options) >= 2 {
+		authorization = options[1]
+	}
+	if len(options) >= 1 {
+		key = options[0]
+	}
 	return &DefaultUserTypeAuthorizer{Authorization: authorization, Key: key}
 }
 

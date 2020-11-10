@@ -9,15 +9,23 @@ type DefaultAuthorizer struct {
 	Exact           bool
 }
 
-func NewAuthorizer(privilegeLoader PrivilegeLoader, exact bool) *DefaultAuthorizer {
-	return &DefaultAuthorizer{PrivilegeLoader: privilegeLoader, Exact: exact}
+func NewAuthorizer(privilegeLoader PrivilegeLoader, exact bool, options ...string) *DefaultAuthorizer {
+	authorization := ""
+	key := "userId"
+	if len(options) >= 2 {
+		authorization = options[1]
+	}
+	if len(options) >= 1 {
+		key = options[0]
+	}
+	return &DefaultAuthorizer{PrivilegeLoader: privilegeLoader, Exact: exact, Authorization: authorization, Key: key}
 }
 
 func (h *DefaultAuthorizer) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := ValueFromContext(r, h.Authorization, h.Key)
 		if len(userId) == 0 {
-			http.Error(w, "Invalid User Id", http.StatusBadRequest)
+			http.Error(w, "Invalid User Id in http request", http.StatusForbidden)
 			return
 		}
 		p := h.PrivilegeLoader.Privilege(r.Context(), userId, privilegeId)

@@ -11,8 +11,16 @@ type DefaultRoleAuthorizer struct {
 	sortedRoles   bool
 }
 
-func NewRoleAuthorizer(authorization string, key string, sortedRoles bool) *DefaultRoleAuthorizer {
-	return &DefaultRoleAuthorizer{Authorization: authorization, Key: key, sortedRoles: sortedRoles}
+func NewRoleAuthorizer(sortedRoles bool, options ...string) *DefaultRoleAuthorizer {
+	authorization := ""
+	key := "roleId"
+	if len(options) >= 2 {
+		authorization = options[1]
+	}
+	if len(options) >= 1 {
+		key = options[0]
+	}
+	return &DefaultRoleAuthorizer{sortedRoles: sortedRoles, Authorization: authorization, Key: key}
 }
 
 func (h *DefaultRoleAuthorizer) Authorize(next http.Handler, roles []string) http.Handler {
