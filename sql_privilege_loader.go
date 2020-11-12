@@ -21,15 +21,16 @@ type SqlPrivilegeLoader struct {
 	Query string
 }
 
-func NewPrivilegeLoader(db *sql.DB, query string) *SqlPrivilegeLoader {
-	driver := GetDriver(db)
-	query = replaceQueryparam(driver, query)
-	return NewSqlPrivilegeLoader(db, query, driver)
+func NewSqlPrivilegeLoader(db *sql.DB, query string, handleDriver bool) *SqlPrivilegeLoader {
+	if handleDriver {
+		driver := GetDriver(db)
+		query = ReplaceQueryArgs(driver, query)
+	}
+	return &SqlPrivilegeLoader{DB: db, Query: query}
 }
 
-func NewSqlPrivilegeLoader(db *sql.DB, query string, driver string) *SqlPrivilegeLoader {
-	query = replaceQueryparam(driver, query)
-	return &SqlPrivilegeLoader{DB: db, Query: query}
+func NewPrivilegeLoader(db *sql.DB, query string) *SqlPrivilegeLoader {
+	return NewSqlPrivilegeLoader(db, query, true)
 }
 
 func (l SqlPrivilegeLoader) Privilege(ctx context.Context, userId string, privilegeId string) int32 {
@@ -44,7 +45,7 @@ func (l SqlPrivilegeLoader) Privilege(ctx context.Context, userId string, privil
 	return permissions
 }
 
-func replaceQueryparam(driver string, query string) string {
+func ReplaceQueryArgs(driver string, query string) string {
 	if driver == DriverOracle || driver == DriverPostgres {
 		var x string
 		if driver == DriverOracle {
