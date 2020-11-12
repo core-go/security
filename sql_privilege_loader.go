@@ -53,8 +53,17 @@ func ReplaceQueryArgs(driver string, query string) string {
 		} else {
 			x = "$"
 		}
-		for i := 1; i < 3; i++ {
-			query = strings.Replace(query, "?", x+fmt.Sprintf("%v", i), 1)
+		i := 1
+		k := strings.Index(query, "?")
+		if k >= 0 {
+			for {
+				query = strings.Replace(query, "?", x+fmt.Sprintf("%v", i), 1)
+				i = i + 1
+				k := strings.Index(query, "?")
+				if k < 0 {
+					return query
+				}
+			}
 		}
 	}
 	return query
