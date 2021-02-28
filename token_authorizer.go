@@ -9,7 +9,11 @@ type TokenAuthorizer struct {
 	exact           bool
 }
 
-func NewTokenAuthorizer(authorization string, key string, sortedPrivilege bool, exact bool) *TokenAuthorizer {
+func NewTokenAuthorizer(sortedPrivilege bool, exact bool, key string, options ...string) *TokenAuthorizer {
+	var authorization string
+	if len(options) >= 1 {
+		authorization = options[0]
+	}
 	return &TokenAuthorizer{Authorization: authorization, Key: key, sortedPrivilege: sortedPrivilege, exact: exact}
 }
 
@@ -17,13 +21,13 @@ func (h *TokenAuthorizer) Authorize(next http.Handler, privilegeId string, actio
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		privileges := ValuesFromContext(r, h.Authorization, h.Key)
 		if privileges == nil || len(*privileges) == 0 {
-			http.Error(w, "No Permission: Require privileges for this user", http.StatusForbidden)
+			http.Error(w, "No permission: Require privileges for this user", http.StatusForbidden)
 			return
 		}
 
 		privilegeAction := GetAction(*privileges, privilegeId, h.sortedPrivilege)
 		if privilegeAction == ActionNone {
-			http.Error(w, "No Permission for this user", http.StatusForbidden)
+			http.Error(w, "No permission for this user", http.StatusForbidden)
 			return
 		}
 		if action == ActionNone || action == ActionAll {
@@ -42,6 +46,6 @@ func (h *TokenAuthorizer) Authorize(next http.Handler, privilegeId string, actio
 				return
 			}
 		}
-		http.Error(w, "No Permission", http.StatusForbidden)
+		http.Error(w, "No permission", http.StatusForbidden)
 	})
 }

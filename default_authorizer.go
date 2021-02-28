@@ -1,15 +1,18 @@
 package security
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 type DefaultAuthorizer struct {
-	Authorization   string
-	Key             string
-	PrivilegeLoader PrivilegeLoader
-	Exact           bool
+	Privilege     func(ctx context.Context, userId string, privilegeId string) int32
+	Authorization string
+	Key           string
+	Exact         bool
 }
 
-func NewAuthorizer(privilegeLoader PrivilegeLoader, exact bool, options ...string) *DefaultAuthorizer {
+func NewAuthorizer(loadPrivilege func(context.Context, string, string) int32, exact bool, options ...string) *DefaultAuthorizer {
 	authorization := ""
 	key := "userId"
 	if len(options) >= 2 {
@@ -18,7 +21,7 @@ func NewAuthorizer(privilegeLoader PrivilegeLoader, exact bool, options ...strin
 	if len(options) >= 1 {
 		key = options[0]
 	}
-	return &DefaultAuthorizer{PrivilegeLoader: privilegeLoader, Exact: exact, Authorization: authorization, Key: key}
+	return &DefaultAuthorizer{Privilege: loadPrivilege, Exact: exact, Authorization: authorization, Key: key}
 }
 
 func (h *DefaultAuthorizer) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
@@ -28,9 +31,9 @@ func (h *DefaultAuthorizer) Authorize(next http.Handler, privilegeId string, act
 			http.Error(w, "Invalid User Id in http request", http.StatusForbidden)
 			return
 		}
-		p := h.PrivilegeLoader.Privilege(r.Context(), userId, privilegeId)
+		p := h.Privilege(r.Context(), userId, privilegeId)
 		if p == ActionNone {
-			http.Error(w, "No Permission for this user", http.StatusForbidden)
+			http.Error(w, "No permission for this user", http.StatusForbidden)
 			return
 		}
 		if action == ActionNone || action == ActionAll {
@@ -47,6 +50,6 @@ func (h *DefaultAuthorizer) Authorize(next http.Handler, privilegeId string, act
 			next.ServeHTTP(w, r)
 			return
 		}
-		http.Error(w, "No Permission", http.StatusForbidden)
+		http.Error(w, "No permission", http.StatusForbidden)
 	})
 }

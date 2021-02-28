@@ -22,21 +22,30 @@ const (
 )
 
 type DefaultAuthorizationChecker struct {
-	Authorization         string
-	Key                   string
-	TokenBlacklistChecker TokenBlacklistChecker
-	TokenVerifier         TokenVerifier
-	Secret                string
-	Ip                    string
-	TokenWhitelistChecker TokenWhitelistChecker
+	VerifyToken    func(tokenString string, secret string) (map[string]interface{}, int64, int64, error)
+	Secret         string
+	Ip             string
+	CheckBlacklist func(id string, token string, createAt time.Time) string
+	Authorization  string
+	Key            string
+	CheckWhitelist func(id string, token string) bool
 }
 
-func NewAuthorizationChecker(authorization, key string, tokenBlacklistService TokenBlacklistChecker, tokenVerifier TokenVerifier, secret string, tokenWhitelistChecker TokenWhitelistChecker) *DefaultAuthorizationChecker {
-	return NewAuthorizationCheckerWithIp(authorization, key, tokenBlacklistService, tokenVerifier, secret, "", tokenWhitelistChecker)
+func NewDefaultAuthorizationChecker(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, key string, options ...string) *DefaultAuthorizationChecker {
+	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", nil, nil, key, options...)
 }
-
-func NewAuthorizationCheckerWithIp(authorization, key string, tokenBlacklistService TokenBlacklistChecker, tokenVerifier TokenVerifier, secret string, ip string, tokenWhitelistChecker TokenWhitelistChecker) *DefaultAuthorizationChecker {
-	return &DefaultAuthorizationChecker{Authorization: authorization, Key: key, TokenBlacklistChecker: tokenBlacklistService, TokenVerifier: tokenVerifier, Secret: secret, Ip: ip, TokenWhitelistChecker: tokenWhitelistChecker}
+func NewAuthorizationChecker(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, key string, options ...string) *DefaultAuthorizationChecker {
+	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", checkToken, nil, key, options...)
+}
+func NewAuthorizationCheckerWithWhitelist(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *DefaultAuthorizationChecker {
+	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", checkToken, checkWhitelist, key, options...)
+}
+func NewAuthorizationCheckerWithIp(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, ip string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *DefaultAuthorizationChecker {
+	var authorization string
+	if len(options) >= 1 {
+		authorization = options[0]
+	}
+	return &DefaultAuthorizationChecker{Authorization: authorization, Key: key, CheckBlacklist: checkToken, VerifyToken: verifyToken, Secret: secret, Ip: ip, CheckWhitelist: checkWhitelist}
 }
 
 func (h *DefaultAuthorizationChecker) Check(next http.Handler) http.Handler {
@@ -52,7 +61,7 @@ func (h *DefaultAuthorizationChecker) Check(next http.Handler) http.Handler {
 			return
 		}
 		token := authorization[7:]
-		data, issuedAt, _, err := h.TokenVerifier.VerifyToken(token, h.Secret)
+		data, issuedAt, _, err := h.VerifyToken(token, h.Secret)
 		if err != nil {
 			http.Error(w, "Invalid Authorization Token", http.StatusUnauthorized)
 			return
@@ -69,21 +78,21 @@ func (h *DefaultAuthorizationChecker) Check(next http.Handler) http.Handler {
 			ip := GetRemoteIp(r)
 			ctx = context.WithValue(ctx, h.Ip, ip)
 		}
-		if h.TokenBlacklistChecker != nil {
+		if h.CheckBlacklist != nil {
 			user := ValueFromMap(h.Key, data)
-			reason := h.TokenBlacklistChecker.Check(user, token, iat)
+			reason := h.CheckBlacklist(user, token, iat)
 			if len(reason) > 0 {
 				http.Error(w, "Token is not valid anymore", http.StatusUnauthorized)
 			} else {
-				if h.TokenWhitelistChecker != nil {
-					valid := h.TokenWhitelistChecker.Check(user, token)
+				if h.CheckWhitelist != nil {
+					valid := h.CheckWhitelist(user, token)
 					if !valid {
 						http.Error(w, "Token is not valid anymore", http.StatusUnauthorized)
 						return
 					}
 				}
-				if len(authorization) > 0 {
-					ctx := context.WithValue(ctx, authorization, data)
+				if len(h.Authorization) > 0 {
+					ctx := context.WithValue(ctx, h.Authorization, data)
 					next.ServeHTTP(w, r.WithContext(ctx))
 				} else {
 					for k, e := range data {
@@ -95,16 +104,16 @@ func (h *DefaultAuthorizationChecker) Check(next http.Handler) http.Handler {
 				}
 			}
 		} else {
-			if h.TokenWhitelistChecker != nil {
+			if h.CheckWhitelist != nil {
 				user := ValueFromMap(h.Key, data)
-				valid := h.TokenWhitelistChecker.Check(user, token)
+				valid := h.CheckWhitelist(user, token)
 				if !valid {
 					http.Error(w, "Token is not valid anymore", http.StatusUnauthorized)
 					return
 				}
 			}
-			if len(authorization) > 0 {
-				ctx := context.WithValue(ctx, authorization, data)
+			if len(h.Authorization) > 0 {
+				ctx := context.WithValue(ctx, h.Authorization, data)
 				next.ServeHTTP(w, r.WithContext(ctx))
 			} else {
 				for k, e := range data {

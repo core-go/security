@@ -9,21 +9,21 @@ import (
 const JoinChar = "-"
 
 type DefaultTokenBlacklistTokenService struct {
+	CacheService CacheService
 	TokenPrefix  string
 	TokenExpires int64
-	CacheService CacheService
 }
 
-func NewTokenBlacklistTokenService(keyPrefix string, tokenExpires int64, cacheService CacheService) *DefaultTokenBlacklistTokenService {
-	return &DefaultTokenBlacklistTokenService{keyPrefix, tokenExpires, cacheService}
+func NewTokenBlacklistTokenService(cacheService CacheService, keyPrefix string, tokenExpires int64) *DefaultTokenBlacklistTokenService {
+	return &DefaultTokenBlacklistTokenService{CacheService: cacheService, TokenPrefix: keyPrefix, TokenExpires: tokenExpires}
 }
 
 func (s *DefaultTokenBlacklistTokenService) generateKey(token string) string {
-	return s.TokenPrefix + "::token::" + token
+	return s.TokenPrefix + token
 }
 
 func (s *DefaultTokenBlacklistTokenService) generateKeyForId(id string) string {
-	return s.TokenPrefix + "::token::" + id
+	return s.TokenPrefix + id
 }
 
 func (s *DefaultTokenBlacklistTokenService) Revoke(token string, reason string, expiredDate time.Time) error {

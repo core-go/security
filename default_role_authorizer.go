@@ -27,7 +27,7 @@ func (h *DefaultRoleAuthorizer) Authorize(next http.Handler, roles []string) htt
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userRoles := ValuesFromContext(r, h.Authorization, h.Key)
 		if userRoles == nil || len(*userRoles) == 0 {
-			http.Error(w, "No Permission: Require roles for this user", http.StatusForbidden)
+			http.Error(w, "No permission: Require roles for this user", http.StatusForbidden)
 			return
 		}
 		if h.sortedRoles {
@@ -40,7 +40,7 @@ func (h *DefaultRoleAuthorizer) Authorize(next http.Handler, roles []string) htt
 			next.ServeHTTP(w, r)
 			return
 		}
-		http.Error(w, "No Permission", http.StatusForbidden)
+		http.Error(w, "No permission", http.StatusForbidden)
 	})
 }
 

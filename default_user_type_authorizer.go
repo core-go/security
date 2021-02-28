@@ -9,7 +9,7 @@ type DefaultUserTypeAuthorizer struct {
 
 func NewUserTypeAuthorizer(options ...string) *DefaultUserTypeAuthorizer {
 	authorization := ""
-	key := "userId"
+	key := "userType"
 	if len(options) >= 2 {
 		authorization = options[1]
 	}
@@ -23,13 +23,13 @@ func (h *DefaultUserTypeAuthorizer) Authorize(next http.Handler, userTypes []str
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userType := FromContext(r, h.Authorization, h.Key)
 		if userType == nil || len(*userType) == 0 {
-			http.Error(w, "No Permission: Require User Type", http.StatusForbidden)
+			http.Error(w, "No permission: Require User Type", http.StatusForbidden)
 			return
 		}
 		if Include(userTypes, *userType) {
 			next.ServeHTTP(w, r)
 		} else {
-			http.Error(w, "No Permission", http.StatusForbidden)
+			http.Error(w, "No permission", http.StatusForbidden)
 		}
 	})
 }

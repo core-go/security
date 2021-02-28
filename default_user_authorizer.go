@@ -30,7 +30,7 @@ func (h *DefaultUserAuthorizer) Authorize(next http.Handler, users []string) htt
 			return
 		}
 		if len(users) == 0 {
-			http.Error(w, "No Permission", http.StatusForbidden)
+			http.Error(w, "No permission", http.StatusForbidden)
 			return
 		}
 		if h.sortedUsers {
@@ -43,6 +43,6 @@ func (h *DefaultUserAuthorizer) Authorize(next http.Handler, users []string) htt
 			next.ServeHTTP(w, r)
 			return
 		}
-		http.Error(w, "No Permission", http.StatusForbidden)
+		http.Error(w, "No permission", http.StatusForbidden)
 	})
 }

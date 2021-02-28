@@ -21,16 +21,18 @@ type SqlPrivilegeLoader struct {
 	Query string
 }
 
-func NewSqlPrivilegeLoader(db *sql.DB, query string, handleDriver bool) *SqlPrivilegeLoader {
+func NewPrivilegeLoader(db *sql.DB, query string, options ...bool) *SqlPrivilegeLoader {
+	var handleDriver bool
+	if len(options) >= 1 {
+		handleDriver = options[0]
+	} else {
+		handleDriver = true
+	}
 	if handleDriver {
 		driver := GetDriver(db)
 		query = ReplaceQueryArgs(driver, query)
 	}
 	return &SqlPrivilegeLoader{DB: db, Query: query}
-}
-
-func NewPrivilegeLoader(db *sql.DB, query string) *SqlPrivilegeLoader {
-	return NewSqlPrivilegeLoader(db, query, true)
 }
 
 func (l SqlPrivilegeLoader) Privilege(ctx context.Context, userId string, privilegeId string) int32 {

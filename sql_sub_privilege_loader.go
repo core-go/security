@@ -9,16 +9,19 @@ type SqlSubPrivilegeLoader struct {
 	DB    *sql.DB
 	Query string
 }
-func NewSqlSubPrivilegeLoader(db *sql.DB, query string, handleDriver bool) *SqlSubPrivilegeLoader {
+
+func NewSubPrivilegeLoader(db *sql.DB, query string, options ...bool) *SqlSubPrivilegeLoader {
+	var handleDriver bool
+	if len(options) >= 1 {
+		handleDriver = options[0]
+	} else {
+		handleDriver = true
+	}
 	if handleDriver {
 		driver := GetDriver(db)
 		query = ReplaceQueryArgs(driver, query)
 	}
 	return &SqlSubPrivilegeLoader{DB: db, Query: query}
-}
-
-func NewSubPrivilegeLoader(db *sql.DB, query string) *SqlSubPrivilegeLoader {
-	return NewSqlSubPrivilegeLoader(db, query, true)
 }
 func (l SqlSubPrivilegeLoader) Privilege(ctx context.Context, userId string, privilegeId string, sub string) int32 {
 	var permissions int32 = 0
