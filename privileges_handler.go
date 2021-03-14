@@ -13,7 +13,7 @@ type PrivilegesHandler struct {
 	Privileges func(ctx context.Context, userId string) []string
 }
 
-func PrivilegeHandler(privilegeLoader func(ctx context.Context, userId string, privilegeId string) int32, privilegesLoader func(ctx context.Context, userId string) []string) *PrivilegesHandler {
+func NewPrivilegeHandler(privilegeLoader func(ctx context.Context, userId string, privilegeId string) int32, privilegesLoader func(ctx context.Context, userId string) []string) *PrivilegesHandler {
 	return &PrivilegesHandler{Privilege: privilegeLoader, Privileges: privilegesLoader}
 }
 
