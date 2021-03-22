@@ -37,9 +37,18 @@ func NewPrivilegeLoader(db *sql.DB, query string, options ...bool) *SqlPrivilege
 
 func (l SqlPrivilegeLoader) Privilege(ctx context.Context, userId string, privilegeId string) int32 {
 	var permissions int32 = 0
-	err := l.DB.QueryRow(l.Query, userId, privilegeId).Scan(&permissions)
-	if err != nil {
+	rows, er0 := l.DB.Query(l.Query, userId, privilegeId)
+	if er0 != nil {
 		return ActionNone
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var action int32
+		er1 := rows.Scan(&action)
+		if er1 != nil {
+			return ActionNone
+		}
+		permissions = permissions | action
 	}
 	if permissions == ActionNone {
 		return ActionAll
