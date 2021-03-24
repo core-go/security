@@ -9,11 +9,13 @@ import (
 )
 
 const (
-	DriverPostgres   = "postgres"
-	DriverMysql      = "mysql"
-	DriverMssql      = "mssql"
-	DriverOracle     = "oracle"
-	DriverNotSupport = "no support"
+	DriverPostgresOrSqlite = "postgres"
+	DriverPostgres         = "postgres"
+	DriverMysql            = "mysql"
+	DriverMssql            = "mssql"
+	DriverOracle           = "oracle"
+	DriverSqlite3          = "sqlite3"
+	DriverNotSupport       = "no support"
 )
 
 type SqlPrivilegeLoader struct {
@@ -57,7 +59,7 @@ func (l SqlPrivilegeLoader) Privilege(ctx context.Context, userId string, privil
 }
 
 func ReplaceQueryArgs(driver string, query string) string {
-	if driver == DriverOracle || driver == DriverPostgres {
+	if driver == DriverOracle || driver == DriverPostgresOrSqlite {
 		var x string
 		if driver == DriverOracle {
 			x = ":val"
@@ -86,15 +88,17 @@ func GetDriver(db *sql.DB) string {
 	}
 	driver := reflect.TypeOf(db.Driver()).String()
 	switch driver {
-	case "*pq.Driver":
-		return DriverPostgres
-	case "*mysql.MySQLDriver":
-		return DriverMysql
-	case "*mssql.Driver":
-		return DriverMssql
-	case "*godror.drv":
-		return DriverOracle
-	default:
-		return DriverNotSupport
+		case "*pq.Driver":
+			return DriverPostgresOrSqlite
+		case "*sqlite3.SQLiteDriver":
+			return DriverPostgresOrSqlite
+		case "*mysql.MySQLDriver":
+			return DriverMysql
+		case "*mssql.Driver":
+			return DriverMssql
+		case "*godror.drv":
+			return DriverOracle
+		default:
+			return DriverNotSupport
 	}
 }
