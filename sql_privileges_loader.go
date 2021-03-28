@@ -19,15 +19,15 @@ func NewPrivilegesLoader(db *sql.DB, query string, options ...bool) *SqlPrivileg
 		handleDriver = true
 	}
 	if handleDriver {
-		driver := GetDriver(db)
-		query = ReplaceQueryArgs(driver, query)
+		driver := getDriver(db)
+		query = replaceQueryArgs(driver, query)
 	}
 	return &SqlPrivilegesLoader{DB: db, Query: query}
 }
 
 func (l SqlPrivilegesLoader) Privileges(ctx context.Context, userId string) []string {
 	privileges := make([]string, 0)
-	rows, err := l.DB.Query(l.Query, userId)
+	rows, err := l.DB.QueryContext(ctx, l.Query, userId)
 	if err != nil {
 		return privileges
 	}

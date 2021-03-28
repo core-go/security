@@ -18,14 +18,14 @@ func NewSubPrivilegeLoader(db *sql.DB, query string, options ...bool) *SqlSubPri
 		handleDriver = true
 	}
 	if handleDriver {
-		driver := GetDriver(db)
-		query = ReplaceQueryArgs(driver, query)
+		driver := getDriver(db)
+		query = replaceQueryArgs(driver, query)
 	}
 	return &SqlSubPrivilegeLoader{DB: db, Query: query}
 }
 func (l SqlSubPrivilegeLoader) Privilege(ctx context.Context, userId string, privilegeId string, sub string) int32 {
 	var permissions int32 = 0
-	rows, er0 := l.DB.Query(l.Query, userId, privilegeId, sub)
+	rows, er0 := l.DB.QueryContext(ctx, l.Query, userId, privilegeId, sub)
 	if er0 != nil {
 		return ActionNone
 	}
