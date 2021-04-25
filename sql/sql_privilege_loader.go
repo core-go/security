@@ -1,4 +1,4 @@
-package security
+package sql
 
 import (
 	"context"
@@ -9,12 +9,12 @@ import (
 )
 
 const (
-	DriverPostgres   = "postgres"
-	DriverMysql      = "mysql"
-	DriverMssql      = "mssql"
-	DriverOracle     = "oracle"
-	DriverSqlite3    = "sqlite3"
-	DriverNotSupport = "no support"
+	driverPostgres   = "postgres"
+	driverMysql      = "mysql"
+	driverMssql      = "mssql"
+	driverOracle     = "oracle"
+	driverSqlite3    = "sqlite3"
+	driverNotSupport = "no support"
 )
 
 type SqlPrivilegeLoader struct {
@@ -40,31 +40,31 @@ func (l SqlPrivilegeLoader) Privilege(ctx context.Context, userId string, privil
 	var permissions int32 = 0
 	rows, er0 := l.DB.QueryContext(ctx, l.Query, userId, privilegeId)
 	if er0 != nil {
-		return ActionNone
+		return actionNone
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var action int32
 		er1 := rows.Scan(&action)
 		if er1 != nil {
-			return ActionNone
+			return actionNone
 		}
 		permissions = permissions | action
 	}
-	if permissions == ActionNone {
-		return ActionAll
+	if permissions == actionNone {
+		return actionAll
 	}
 	return permissions
 }
 
 func replaceQueryArgs(driver string, query string) string {
-	if driver == DriverOracle || driver == DriverPostgres || driver == DriverMssql {
+	if driver == driverOracle || driver == driverPostgres || driver == driverMssql {
 		var x string
-		if driver == DriverOracle {
+		if driver == driverOracle {
 			x = ":val"
-		} else if driver == DriverPostgres {
+		} else if driver == driverPostgres {
 			x = "$"
-		} else if driver == DriverMssql {
+		} else if driver == driverMssql {
 			x = "@p"
 		}
 		i := 1
@@ -85,21 +85,21 @@ func replaceQueryArgs(driver string, query string) string {
 
 func getDriver(db *sql.DB) string {
 	if db == nil {
-		return DriverNotSupport
+		return driverNotSupport
 	}
 	driver := reflect.TypeOf(db.Driver()).String()
 	switch driver {
 	case "*pq.Driver":
-		return DriverPostgres
+		return driverPostgres
 	case "*godror.drv":
-		return DriverOracle
+		return driverOracle
 	case "*mysql.MySQLDriver":
-		return DriverMysql
+		return driverMysql
 	case "*mssql.Driver":
-		return DriverMssql
+		return driverMssql
 	case "*sqlite3.SQLiteDriver":
-		return DriverSqlite3
+		return driverSqlite3
 	default:
-		return DriverNotSupport
+		return driverNotSupport
 	}
 }

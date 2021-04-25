@@ -1,4 +1,4 @@
-package security
+package sql
 
 import (
 	"context"
@@ -37,7 +37,7 @@ func (l SqlPrivilegesLoader) Privileges(ctx context.Context, userId string) []st
 		var id string
 		var permissions int32
 		if err = rows.Scan(&id, &permissions); err == nil {
-			if permissions != ActionNone {
+			if permissions != actionNone {
 				x := id + " " + fmt.Sprintf("%X", permissions)
 				privileges = append(privileges, x)
 			} else {
