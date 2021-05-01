@@ -1,4 +1,4 @@
-package security
+package client
 
 import (
 	"context"
