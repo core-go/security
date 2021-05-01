@@ -75,7 +75,7 @@ func (h *DefaultAuthorizationChecker) Check(next http.Handler) http.Handler {
 		var ctx context.Context
 		ctx = r.Context()
 		if len(h.Ip) > 0 {
-			ip := GetRemoteIp(r)
+			ip := getRemoteIp(r)
 			ctx = context.WithValue(ctx, h.Ip, ip)
 		}
 		if h.CheckBlacklist != nil {

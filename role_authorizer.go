@@ -5,13 +5,13 @@ import (
 	"sort"
 )
 
-type DefaultRoleAuthorizer struct {
+type RoleAuthorizer struct {
 	Authorization string
 	Key           string
 	sortedRoles   bool
 }
 
-func NewRoleAuthorizer(sortedRoles bool, options ...string) *DefaultRoleAuthorizer {
+func NewRoleAuthorizer(sortedRoles bool, options ...string) *RoleAuthorizer {
 	authorization := ""
 	key := "roleId"
 	if len(options) >= 2 {
@@ -20,10 +20,10 @@ func NewRoleAuthorizer(sortedRoles bool, options ...string) *DefaultRoleAuthoriz
 	if len(options) >= 1 {
 		key = options[0]
 	}
-	return &DefaultRoleAuthorizer{sortedRoles: sortedRoles, Authorization: authorization, Key: key}
+	return &RoleAuthorizer{sortedRoles: sortedRoles, Authorization: authorization, Key: key}
 }
 
-func (h *DefaultRoleAuthorizer) Authorize(next http.Handler, roles []string) http.Handler {
+func (h *RoleAuthorizer) Authorize(next http.Handler, roles []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userRoles := ValuesFromContext(r, h.Authorization, h.Key)
 		if userRoles == nil || len(*userRoles) == 0 {

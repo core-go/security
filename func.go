@@ -9,25 +9,6 @@ import (
 	"strings"
 )
 
-func GetPrivilegesFromContext(r *http.Request) []string {
-	token := r.Context().Value(Authorization)
-	privileges := make([]string, 0)
-	if authorizationToken, ok1 := token.(map[string]interface{}); ok1 {
-		pPrivileges, ok2 := authorizationToken["privileges"]
-		if !ok2 || pPrivileges == nil {
-			return privileges
-		}
-		if rawPrivileges, ok3 := pPrivileges.([]interface{}); ok3 {
-			for _, rawPrivilege := range rawPrivileges {
-				if s, ok4 := rawPrivilege.(string); ok4 {
-					privileges = append(privileges, s)
-				}
-			}
-		}
-	}
-	return privileges
-}
-
 func GetPositionFromSortedPrivileges(privileges []string, privilegeId string) int {
 	return sort.Search(len(privileges), func(i int) bool { return privileges[i][:strings.Index(privileges[i], ":")] >= privilegeId })
 }
@@ -110,37 +91,6 @@ func ValueFromContext(r *http.Request, authorization string, key string) string 
 		return ""
 	}
 }
-func FromMap(key string, data map[string]interface{}) *string {
-	u := data[key]
-	if u != nil {
-		v, ok := u.(string)
-		if ok {
-			return &v
-		}
-	}
-	return nil
-}
-func FromContext(r *http.Request, authorization string, key string) *string {
-	if len(authorization) > 0 {
-		token := r.Context().Value(authorization)
-		if token != nil {
-			if authorizationToken, exist := token.(map[string]interface{}); exist {
-				return FromMap(key, authorizationToken)
-			}
-		}
-		return nil
-	} else {
-		u := r.Context().Value(key)
-		if u == nil {
-			return nil
-		}
-		v, ok := u.(string)
-		if !ok {
-			return nil
-		}
-		return &v
-	}
-}
 func ValuesFromContext(r *http.Request, authorization string, key string) *[]string {
 	token := r.Context().Value(authorization)
 	if token != nil {
@@ -157,7 +107,7 @@ func ValuesFromContext(r *http.Request, authorization string, key string) *[]str
 	return nil
 }
 
-func GetRemoteIp(r *http.Request) string {
+func getRemoteIp(r *http.Request) string {
 	remoteIP, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		remoteIP = r.RemoteAddr
