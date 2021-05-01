@@ -44,22 +44,6 @@ func (h *RoleAuthorizer) Authorize(next http.Handler, roles []string) http.Handl
 	})
 }
 
-func GetRolesFromContext(r *http.Request) *[]string {
-	token := r.Context().Value(Authorization)
-	if token != nil {
-		if authorizationToken, exist := token.(map[string]interface{}); exist {
-			pRoles, ok2 := authorizationToken["roles"]
-			if !ok2 || pRoles == nil {
-				return nil
-			}
-			if roles, exist := pRoles.(*[]string); exist {
-				return roles
-			}
-		}
-	}
-	return nil
-}
-
 func HasRole(roles []string, userRoles []string) bool {
 	for _, role := range roles {
 		for _, userRole := range userRoles {

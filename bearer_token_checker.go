@@ -21,7 +21,7 @@ const (
 	Ip            = "ip"
 )
 
-type AuthorizationChecker struct {
+type BearerTokenChecker struct {
 	VerifyToken    func(tokenString string, secret string) (map[string]interface{}, int64, int64, error)
 	Secret         string
 	Ip             string
@@ -31,24 +31,24 @@ type AuthorizationChecker struct {
 	CheckWhitelist func(id string, token string) bool
 }
 
-func NewDefaultAuthorizationChecker(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, key string, options ...string) *AuthorizationChecker {
-	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", nil, nil, key, options...)
+func NewDefaultBearerTokenChecker(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, key string, options ...string) *BearerTokenChecker {
+	return NewBearerTokenCheckerWithIp(verifyToken, secret, "", nil, nil, key, options...)
 }
-func NewAuthorizationChecker(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, key string, options ...string) *AuthorizationChecker {
-	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", checkToken, nil, key, options...)
+func NewBearerTokenChecker(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, key string, options ...string) *BearerTokenChecker {
+	return NewBearerTokenCheckerWithIp(verifyToken, secret, "", checkToken, nil, key, options...)
 }
-func NewAuthorizationCheckerWithWhitelist(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *AuthorizationChecker {
-	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", checkToken, checkWhitelist, key, options...)
+func NewBearerTokenCheckerWithWhitelist(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *BearerTokenChecker {
+	return NewBearerTokenCheckerWithIp(verifyToken, secret, "", checkToken, checkWhitelist, key, options...)
 }
-func NewAuthorizationCheckerWithIp(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, ip string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *AuthorizationChecker {
+func NewBearerTokenCheckerWithIp(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, ip string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *BearerTokenChecker {
 	var authorization string
 	if len(options) >= 1 {
 		authorization = options[0]
 	}
-	return &AuthorizationChecker{Authorization: authorization, Key: key, CheckBlacklist: checkToken, VerifyToken: verifyToken, Secret: secret, Ip: ip, CheckWhitelist: checkWhitelist}
+	return &BearerTokenChecker{Authorization: authorization, Key: key, CheckBlacklist: checkToken, VerifyToken: verifyToken, Secret: secret, Ip: ip, CheckWhitelist: checkWhitelist}
 }
 
-func (h *AuthorizationChecker) Check(next http.Handler) http.Handler {
+func (h *BearerTokenChecker) Check(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		au := r.Header["Authorization"]
 		if len(au) == 0 {
@@ -125,27 +125,4 @@ func (h *AuthorizationChecker) Check(next http.Handler) http.Handler {
 			}
 		}
 	})
-}
-func HandleAuthorization(ctx context.Context, next http.Handler, w http.ResponseWriter, r *http.Request, authorization string, data map[string]interface{}) {
-	if len(authorization) > 0 {
-		ctx := context.WithValue(ctx, authorization, data)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	} else {
-		for k, e := range data {
-			if len(k) > 0 {
-				ctx = context.WithValue(ctx, k, e)
-			}
-		}
-		next.ServeHTTP(w, r.WithContext(ctx))
-	}
-}
-func ParseBearerToken(data []string) string {
-	if len(data) == 0 {
-		return ""
-	}
-	authorization := data[0]
-	if strings.HasPrefix(authorization, "Bearer ") != true {
-		return ""
-	}
-	return authorization[7:]
 }

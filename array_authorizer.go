@@ -16,7 +16,7 @@ func NewArrayAuthorizer(sortedUsers bool, options ...string) *ArrayAuthorizer {
 	if len(options) >= 2 {
 		authorization = options[1]
 	}
-	if len(options) >= 1 {
+	if len(options) >= 1 && len(options[0]) > 0 {
 		key = options[0]
 	}
 	return &ArrayAuthorizer{sortedUsers: sortedUsers, Authorization: authorization, Key: key}
