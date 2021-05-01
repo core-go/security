@@ -3,7 +3,6 @@ package security
 import (
 	"context"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -22,30 +21,30 @@ const (
 )
 
 type AuthorizationChecker struct {
-	VerifyToken    func(tokenString string, secret string) (map[string]interface{}, int64, int64, error)
-	Secret         string
-	Ip             string
-	CheckBlacklist func(id string, token string, createAt time.Time) string
-	Authorization  string
-	Key            string
-	CheckWhitelist func(id string, token string) bool
+	GetAndVerifyToken func(authorization string, secret string) (bool, string, map[string]interface{}, int64, int64, error)
+	Secret            string
+	Ip                string
+	CheckBlacklist    func(id string, token string, createAt time.Time) string
+	Authorization     string
+	Key               string
+	CheckWhitelist    func(id string, token string) bool
 }
 
-func NewDefaultAuthorizationChecker(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, key string, options ...string) *AuthorizationChecker {
+func NewDefaultAuthorizationChecker(verifyToken func(string, string) (bool, string, map[string]interface{}, int64, int64, error), secret string, key string, options ...string) *AuthorizationChecker {
 	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", nil, nil, key, options...)
 }
-func NewAuthorizationChecker(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, key string, options ...string) *AuthorizationChecker {
+func NewAuthorizationChecker(verifyToken func(string, string) (bool, string, map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, key string, options ...string) *AuthorizationChecker {
 	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", checkToken, nil, key, options...)
 }
-func NewAuthorizationCheckerWithWhitelist(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *AuthorizationChecker {
+func NewAuthorizationCheckerWithWhitelist(verifyToken func(string, string) (bool, string, map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *AuthorizationChecker {
 	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", checkToken, checkWhitelist, key, options...)
 }
-func NewAuthorizationCheckerWithIp(verifyToken func(string, string) (map[string]interface{}, int64, int64, error), secret string, ip string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *AuthorizationChecker {
+func NewAuthorizationCheckerWithIp(verifyToken func(string, string) (bool, string, map[string]interface{}, int64, int64, error), secret string, ip string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *AuthorizationChecker {
 	var authorization string
 	if len(options) >= 1 {
 		authorization = options[0]
 	}
-	return &AuthorizationChecker{Authorization: authorization, Key: key, CheckBlacklist: checkToken, VerifyToken: verifyToken, Secret: secret, Ip: ip, CheckWhitelist: checkWhitelist}
+	return &AuthorizationChecker{Authorization: authorization, Key: key, CheckBlacklist: checkToken, GetAndVerifyToken: verifyToken, Secret: secret, Ip: ip, CheckWhitelist: checkWhitelist}
 }
 
 func (h *AuthorizationChecker) Check(next http.Handler) http.Handler {
@@ -56,13 +55,8 @@ func (h *AuthorizationChecker) Check(next http.Handler) http.Handler {
 			return
 		}
 		authorization := au[0]
-		if strings.HasPrefix(authorization, "Bearer ") != true {
-			http.Error(w, "invalid 'Authorization' format. The format must be 'Authorization: Bearer [token]'", http.StatusUnauthorized)
-			return
-		}
-		token := authorization[7:]
-		data, issuedAt, _, err := h.VerifyToken(token, h.Secret)
-		if err != nil {
+		isToken, token, data, issuedAt, _, err := h.GetAndVerifyToken(authorization, h.Secret)
+		if !isToken || err != nil {
 			http.Error(w, "invalid Authorization token", http.StatusUnauthorized)
 			return
 		}

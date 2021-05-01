@@ -2,7 +2,8 @@ package echo
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
+	"errors"
+	"github.com/labstack/echo"
 	"net/http"
 )
 
@@ -25,33 +26,33 @@ func NewAuthorizer(loadPrivilege func(context.Context, string, string) int32, ex
 	return &Authorizer{Privilege: loadPrivilege, Exact: exact, Authorization: authorization, Key: key}
 }
 
-func (h *Authorizer) Authorize(privilegeId string, action int32) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		r := ctx.Request
-		userId := FromContext(r, h.Authorization, h.Key)
-		if len(userId) == 0 {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, "invalid User Id in http request")
-			return
-		}
-		p := h.Privilege(r.Context(), userId, privilegeId)
-		if p == ActionNone {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission for this user")
-			return
-		}
-		if action == ActionNone || action == ActionAll {
-			ctx.Next()
-			return
-		}
-		sum := action & p
-		if h.Exact {
-			if sum == action {
-				ctx.Next()
-				return
+func (h *Authorizer) Authorize(privilegeId string, action int32) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(ctx echo.Context) error {
+			r := ctx.Request()
+			userId := FromContext(r, h.Authorization, h.Key)
+			if len(userId) == 0 {
+				ctx.String(http.StatusForbidden, "invalid User Id in http request")
+				return errors.New("invalid User Id in http request")
 			}
-		} else if sum >= action {
-			ctx.Next()
-			return
+			p := h.Privilege(r.Context(), userId, privilegeId)
+			if p == ActionNone {
+				ctx.String(http.StatusForbidden, "no permission for this user")
+				return errors.New("no permission for this user")
+			}
+			if action == ActionNone || action == ActionAll {
+				return next(ctx)
+			}
+			sum := action & p
+			if h.Exact {
+				if sum == action {
+					return next(ctx)
+				}
+			} else if sum >= action {
+				return next(ctx)
+			}
+			ctx.String(http.StatusForbidden, "no permission")
+			return errors.New("no permission")
 		}
-		ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission")
 	}
 }
