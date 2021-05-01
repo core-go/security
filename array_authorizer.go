@@ -1,8 +1,6 @@
 package security
 
-import (
-	"net/http"
-)
+import "net/http"
 
 type ArrayAuthorizer struct {
 	Authorization string
@@ -26,11 +24,11 @@ func (h *ArrayAuthorizer) Authorize(next http.Handler, array []string) http.Hand
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := FromContext(r, h.Authorization, h.Key)
 		if len(v) == 0 {
-			http.Error(w, "Cannot get '" + h.Key + "' from http request", http.StatusForbidden)
+			http.Error(w, "cannot get '" + h.Key + "' from http request", http.StatusForbidden)
 			return
 		}
 		if len(array) == 0 {
-			http.Error(w, "No permission", http.StatusForbidden)
+			http.Error(w, "no permission", http.StatusForbidden)
 			return
 		}
 		if h.sortedUsers {
@@ -43,6 +41,6 @@ func (h *ArrayAuthorizer) Authorize(next http.Handler, array []string) http.Hand
 			next.ServeHTTP(w, r)
 			return
 		}
-		http.Error(w, "No permission", http.StatusForbidden)
+		http.Error(w, "no permission", http.StatusForbidden)
 	})
 }

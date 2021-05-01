@@ -28,11 +28,11 @@ func (h *ArrayAuthorizer) Authorize(array []string) gin.HandlerFunc {
 		r := ctx.Request
 		v := FromContext(r, h.Authorization, h.Key)
 		if len(v) == 0 {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, "Cannot get '" + h.Key + "' from http request")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, "cannot get '" + h.Key + "' from http request")
 			return
 		}
 		if len(array) == 0 {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, "No permission")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission")
 			return
 		}
 		if h.sortedUsers {
@@ -45,6 +45,6 @@ func (h *ArrayAuthorizer) Authorize(array []string) gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
-		ctx.AbortWithStatusJSON(http.StatusForbidden, "No permission")
+		ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission")
 	}
 }

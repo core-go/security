@@ -32,13 +32,13 @@ func (h *PrivilegesAuthorizer) Authorize(privilegeId string, action int32) gin.H
 		}
 		privileges := h.Privileges(r.Context(), userId)
 		if privileges == nil || len(privileges) == 0 {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, "No permission: Require privileges for this user")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission: Require privileges for this user")
 			return
 		}
 
 		privilegeAction := GetAction(privileges, privilegeId, h.sortedPrivilege)
 		if privilegeAction == ActionNone {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, "No permission for this user")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission for this user")
 			return
 		}
 		if action == ActionNone || action == ActionAll {
@@ -57,6 +57,6 @@ func (h *PrivilegesAuthorizer) Authorize(privilegeId string, action int32) gin.H
 				return
 			}
 		}
-		ctx.AbortWithStatusJSON(http.StatusForbidden, "No permission")
+		ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission")
 	}
 }

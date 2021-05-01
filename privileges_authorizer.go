@@ -25,18 +25,18 @@ func (h *PrivilegesAuthorizer) Authorize(next http.Handler, privilegeId string, 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := FromContext(r, h.Authorization, h.Key)
 		if len(userId) == 0 {
-			http.Error(w, "Invalid User Id", http.StatusForbidden)
+			http.Error(w, "invalid User Id", http.StatusForbidden)
 			return
 		}
 		privileges := h.Privileges(r.Context(), userId)
 		if privileges == nil || len(privileges) == 0 {
-			http.Error(w, "No permission: Require privileges for this user", http.StatusForbidden)
+			http.Error(w, "no permission: Require privileges for this user", http.StatusForbidden)
 			return
 		}
 
 		privilegeAction := GetAction(privileges, privilegeId, h.sortedPrivilege)
 		if privilegeAction == ActionNone {
-			http.Error(w, "No permission for this user", http.StatusForbidden)
+			http.Error(w, "no permission for this user", http.StatusForbidden)
 			return
 		}
 		if action == ActionNone || action == ActionAll {
@@ -55,6 +55,6 @@ func (h *PrivilegesAuthorizer) Authorize(next http.Handler, privilegeId string, 
 				return
 			}
 		}
-		http.Error(w, "No permission", http.StatusForbidden)
+		http.Error(w, "no permission", http.StatusForbidden)
 	})
 }

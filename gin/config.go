@@ -1,12 +1,12 @@
 package gin
 
-import "net/http"
+import "github.com/gin-gonic/gin"
 
 type SecurityConfig struct {
 	SecuritySkip    bool
-	Check           func(next http.Handler) http.Handler
-	AuthorizeExact  func(next http.Handler, privilege string, action int32) http.Handler
-	Authorize       func(next http.Handler, privilege string, action int32) http.Handler
-	AuthorizeSub    func(next http.Handler, privilege string, sub string, action int32) http.Handler
-	AuthorizeValues func(next http.Handler, values []string) http.Handler
+	Check           func() gin.HandlerFunc
+	AuthorizeExact  func(privilege string, action int32) gin.HandlerFunc
+	Authorize       func(privilege string, action int32) gin.HandlerFunc
+	AuthorizeSub    func(privilege string, sub string, action int32) gin.HandlerFunc
+	AuthorizeValues func(values []string) gin.HandlerFunc
 }

@@ -30,12 +30,12 @@ func (h *Authorizer) Authorize(privilegeId string, action int32) gin.HandlerFunc
 		r := ctx.Request
 		userId := FromContext(r, h.Authorization, h.Key)
 		if len(userId) == 0 {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, "Invalid User Id in http request")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, "invalid User Id in http request")
 			return
 		}
 		p := h.Privilege(r.Context(), userId, privilegeId)
 		if p == ActionNone {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, "No permission for this user")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission for this user")
 			return
 		}
 		if action == ActionNone || action == ActionAll {
@@ -52,6 +52,6 @@ func (h *Authorizer) Authorize(privilegeId string, action int32) gin.HandlerFunc
 			ctx.Next()
 			return
 		}
-		ctx.AbortWithStatusJSON(http.StatusForbidden, "No permission")
+		ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission")
 	}
 }

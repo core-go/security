@@ -28,12 +28,12 @@ func (h *SubAuthorizer) Authorize(next http.Handler, privilegeId string, sub str
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := FromContext(r, h.Authorization, h.Key)
 		if len(userId) == 0 {
-			http.Error(w, "Invalid User Id in http request", http.StatusForbidden)
+			http.Error(w, "invalid User Id in http request", http.StatusForbidden)
 			return
 		}
 		p := h.Privilege(r.Context(), userId, privilegeId, sub)
 		if p == ActionNone {
-			http.Error(w, "No permission for this user", http.StatusForbidden)
+			http.Error(w, "no permission for this user", http.StatusForbidden)
 			return
 		}
 		if action == ActionNone || action == ActionAll {
@@ -50,6 +50,6 @@ func (h *SubAuthorizer) Authorize(next http.Handler, privilegeId string, sub str
 			next.ServeHTTP(w, r)
 			return
 		}
-		http.Error(w, "No permission", http.StatusForbidden)
+		http.Error(w, "no permission", http.StatusForbidden)
 	})
 }

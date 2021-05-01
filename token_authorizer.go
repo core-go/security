@@ -21,13 +21,13 @@ func (h *TokenAuthorizer) Authorize(next http.Handler, privilegeId string, actio
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		privileges := ValuesFromContext(r, h.Authorization, h.Key)
 		if privileges == nil || len(*privileges) == 0 {
-			http.Error(w, "No permission: Require privileges for this user", http.StatusForbidden)
+			http.Error(w, "no permission: Require privileges for this user", http.StatusForbidden)
 			return
 		}
 
 		privilegeAction := GetAction(*privileges, privilegeId, h.sortedPrivilege)
 		if privilegeAction == ActionNone {
-			http.Error(w, "No permission for this user", http.StatusForbidden)
+			http.Error(w, "no permission for this user", http.StatusForbidden)
 			return
 		}
 		if action == ActionNone || action == ActionAll {
@@ -46,6 +46,6 @@ func (h *TokenAuthorizer) Authorize(next http.Handler, privilegeId string, actio
 				return
 			}
 		}
-		http.Error(w, "No permission", http.StatusForbidden)
+		http.Error(w, "no permission", http.StatusForbidden)
 	})
 }

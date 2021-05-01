@@ -1,7 +1,8 @@
-package security
+package echo
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
@@ -24,32 +25,33 @@ func NewAuthorizer(loadPrivilege func(context.Context, string, string) int32, ex
 	return &Authorizer{Privilege: loadPrivilege, Exact: exact, Authorization: authorization, Key: key}
 }
 
-func (h *Authorizer) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func (h *Authorizer) Authorize(privilegeId string, action int32) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		r := ctx.Request
 		userId := FromContext(r, h.Authorization, h.Key)
 		if len(userId) == 0 {
-			http.Error(w, "invalid User Id in http request", http.StatusForbidden)
+			ctx.AbortWithStatusJSON(http.StatusForbidden, "invalid User Id in http request")
 			return
 		}
 		p := h.Privilege(r.Context(), userId, privilegeId)
 		if p == ActionNone {
-			http.Error(w, "no permission for this user", http.StatusForbidden)
+			ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission for this user")
 			return
 		}
 		if action == ActionNone || action == ActionAll {
-			next.ServeHTTP(w, r)
+			ctx.Next()
 			return
 		}
 		sum := action & p
 		if h.Exact {
 			if sum == action {
-				next.ServeHTTP(w, r)
+				ctx.Next()
 				return
 			}
 		} else if sum >= action {
-			next.ServeHTTP(w, r)
+			ctx.Next()
 			return
 		}
-		http.Error(w, "no permission", http.StatusForbidden)
-	})
+		ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission")
+	}
 }

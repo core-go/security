@@ -29,7 +29,7 @@ func (h *RoleAuthorizer) Authorize(roles []string) gin.HandlerFunc {
 		r := ctx.Request
 		userRoles := ValuesFromContext(r, h.Authorization, h.Key)
 		if userRoles == nil || len(*userRoles) == 0 {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, "No permission: Require roles for this user")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission: Require roles for this user")
 			return
 		}
 		if h.sortedRoles {
@@ -42,7 +42,7 @@ func (h *RoleAuthorizer) Authorize(roles []string) gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
-		ctx.AbortWithStatusJSON(http.StatusForbidden, "No permission")
+		ctx.AbortWithStatusJSON(http.StatusForbidden, "no permission")
 	}
 }
 

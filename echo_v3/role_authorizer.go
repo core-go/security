@@ -1,6 +1,8 @@
-package security
+package echo
 
 import (
+	"errors"
+	"github.com/labstack/echo"
 	"net/http"
 	"sort"
 )
@@ -23,25 +25,29 @@ func NewRoleAuthorizer(sortedRoles bool, options ...string) *RoleAuthorizer {
 	return &RoleAuthorizer{sortedRoles: sortedRoles, Authorization: authorization, Key: key}
 }
 
-func (h *RoleAuthorizer) Authorize(next http.Handler, roles []string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userRoles := ValuesFromContext(r, h.Authorization, h.Key)
-		if userRoles == nil || len(*userRoles) == 0 {
-			http.Error(w, "no permission: Require roles for this user", http.StatusForbidden)
-			return
-		}
-		if h.sortedRoles {
-			if HasSortedRole(roles, *userRoles) {
-				next.ServeHTTP(w, r)
-				return
+func (h *RoleAuthorizer) Authorize(roles []string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(ctx echo.Context) error {
+			r := ctx.Request()
+			userRoles := ValuesFromContext(r, h.Authorization, h.Key)
+			if userRoles == nil || len(*userRoles) == 0 {
+				ctx.JSON(http.StatusForbidden, "no permission: Require roles for this user")
+				return errors.New("no permission: Require roles for this user")
 			}
+			if h.sortedRoles {
+				if HasSortedRole(roles, *userRoles) {
+					next(ctx)
+					return nil
+				}
+			}
+			if HasRole(roles, *userRoles) {
+				next(ctx)
+				return nil
+			}
+			ctx.JSON(http.StatusForbidden, "no permission")
+			return errors.New("no permission")
 		}
-		if HasRole(roles, *userRoles) {
-			next.ServeHTTP(w, r)
-			return
-		}
-		http.Error(w, "no permission", http.StatusForbidden)
-	})
+	}
 }
 
 func HasRole(roles []string, userRoles []string) bool {
