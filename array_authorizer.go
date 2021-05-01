@@ -24,7 +24,7 @@ func NewArrayAuthorizer(sortedUsers bool, options ...string) *ArrayAuthorizer {
 
 func (h *ArrayAuthorizer) Authorize(next http.Handler, array []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		v := ValueFromContext(r, h.Authorization, h.Key)
+		v := FromContext(r, h.Authorization, h.Key)
 		if len(v) == 0 {
 			http.Error(w, "Cannot get '" + h.Key + "' from http request", http.StatusForbidden)
 			return

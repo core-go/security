@@ -71,7 +71,7 @@ func ValueFromMap(key string, data map[string]interface{}) string {
 	}
 	return ""
 }
-func ValueFromContext(r *http.Request, authorization string, key string) string {
+func FromContext(r *http.Request, authorization string, key string) string {
 	if len(authorization) > 0 {
 		token := r.Context().Value(authorization)
 		if token != nil {

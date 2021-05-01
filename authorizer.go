@@ -5,14 +5,14 @@ import (
 	"net/http"
 )
 
-type DefaultAuthorizer struct {
+type Authorizer struct {
 	Privilege     func(ctx context.Context, userId string, privilegeId string) int32
 	Authorization string
 	Key           string
 	Exact         bool
 }
 
-func NewAuthorizer(loadPrivilege func(context.Context, string, string) int32, exact bool, options ...string) *DefaultAuthorizer {
+func NewAuthorizer(loadPrivilege func(context.Context, string, string) int32, exact bool, options ...string) *Authorizer {
 	authorization := ""
 	key := "userId"
 	if len(options) >= 2 {
@@ -21,12 +21,12 @@ func NewAuthorizer(loadPrivilege func(context.Context, string, string) int32, ex
 	if len(options) >= 1 {
 		key = options[0]
 	}
-	return &DefaultAuthorizer{Privilege: loadPrivilege, Exact: exact, Authorization: authorization, Key: key}
+	return &Authorizer{Privilege: loadPrivilege, Exact: exact, Authorization: authorization, Key: key}
 }
 
-func (h *DefaultAuthorizer) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
+func (h *Authorizer) Authorize(next http.Handler, privilegeId string, action int32) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId := ValueFromContext(r, h.Authorization, h.Key)
+		userId := FromContext(r, h.Authorization, h.Key)
 		if len(userId) == 0 {
 			http.Error(w, "Invalid User Id in http request", http.StatusForbidden)
 			return
