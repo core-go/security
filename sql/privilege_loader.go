@@ -17,12 +17,12 @@ const (
 	driverNotSupport = "no support"
 )
 
-type SqlPrivilegeLoader struct {
+type PrivilegeLoader struct {
 	DB    *sql.DB
 	Query string
 }
 
-func NewPrivilegeLoader(db *sql.DB, query string, options ...bool) *SqlPrivilegeLoader {
+func NewPrivilegeLoader(db *sql.DB, query string, options ...bool) *PrivilegeLoader {
 	var handleDriver bool
 	if len(options) >= 1 {
 		handleDriver = options[0]
@@ -33,10 +33,10 @@ func NewPrivilegeLoader(db *sql.DB, query string, options ...bool) *SqlPrivilege
 		driver := getDriver(db)
 		query = replaceQueryArgs(driver, query)
 	}
-	return &SqlPrivilegeLoader{DB: db, Query: query}
+	return &PrivilegeLoader{DB: db, Query: query}
 }
 
-func (l SqlPrivilegeLoader) Privilege(ctx context.Context, userId string, privilegeId string) int32 {
+func (l PrivilegeLoader) Privilege(ctx context.Context, userId string, privilegeId string) int32 {
 	var permissions int32 = 0
 	rows, er0 := l.DB.QueryContext(ctx, l.Query, userId, privilegeId)
 	if er0 != nil {

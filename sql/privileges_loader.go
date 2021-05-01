@@ -6,12 +6,12 @@ import (
 	"fmt"
 )
 
-type SqlPrivilegesLoader struct {
+type PrivilegesLoader struct {
 	DB    *sql.DB
 	Query string
 }
 
-func NewPrivilegesLoader(db *sql.DB, query string, options ...bool) *SqlPrivilegesLoader {
+func NewPrivilegesLoader(db *sql.DB, query string, options ...bool) *PrivilegesLoader {
 	var handleDriver bool
 	if len(options) >= 1 {
 		handleDriver = options[0]
@@ -22,10 +22,10 @@ func NewPrivilegesLoader(db *sql.DB, query string, options ...bool) *SqlPrivileg
 		driver := getDriver(db)
 		query = replaceQueryArgs(driver, query)
 	}
-	return &SqlPrivilegesLoader{DB: db, Query: query}
+	return &PrivilegesLoader{DB: db, Query: query}
 }
 
-func (l SqlPrivilegesLoader) Privileges(ctx context.Context, userId string) []string {
+func (l PrivilegesLoader) Privileges(ctx context.Context, userId string) []string {
 	privileges := make([]string, 0)
 	rows, err := l.DB.QueryContext(ctx, l.Query, userId)
 	if err != nil {

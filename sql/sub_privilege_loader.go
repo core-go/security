@@ -5,12 +5,12 @@ import (
 	"database/sql"
 )
 
-type SqlSubPrivilegeLoader struct {
+type SubPrivilegeLoader struct {
 	DB    *sql.DB
 	Query string
 }
 
-func NewSubPrivilegeLoader(db *sql.DB, query string, options ...bool) *SqlSubPrivilegeLoader {
+func NewSubPrivilegeLoader(db *sql.DB, query string, options ...bool) *SubPrivilegeLoader {
 	var handleDriver bool
 	if len(options) >= 1 {
 		handleDriver = options[0]
@@ -21,9 +21,9 @@ func NewSubPrivilegeLoader(db *sql.DB, query string, options ...bool) *SqlSubPri
 		driver := getDriver(db)
 		query = replaceQueryArgs(driver, query)
 	}
-	return &SqlSubPrivilegeLoader{DB: db, Query: query}
+	return &SubPrivilegeLoader{DB: db, Query: query}
 }
-func (l SqlSubPrivilegeLoader) Privilege(ctx context.Context, userId string, privilegeId string, sub string) int32 {
+func (l SubPrivilegeLoader) Privilege(ctx context.Context, userId string, privilegeId string, sub string) int32 {
 	var permissions int32 = 0
 	rows, er0 := l.DB.QueryContext(ctx, l.Query, userId, privilegeId, sub)
 	if er0 != nil {
