@@ -1,6 +1,6 @@
 # Security
 - Implementation of TokenVerifier: [DefaultTokenService](https://github.com/core-go/security/jwt/blob/main/default_token_service.go)
-- Implementation of CacheService: [RedisService](https://github.com/core-go/redis/blob/main/redis_service.go) of [common-go/redis](https://github.com/core-go/redis)
+- Implementation of CacheService: [RedisService](https://github.com/core-go/redis/blob/main/redis_service.go) of [core-go/redis](https://github.com/core-go/redis)
 
 ## Installation
 Please make sure to initialize a Go module before installing core-go/security:
