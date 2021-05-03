@@ -43,13 +43,18 @@ func (l PrivilegeLoader) Privilege(ctx context.Context, userId string, privilege
 		return actionNone
 	}
 	defer rows.Close()
+	exist := false
 	for rows.Next() {
+		exist = true
 		var action int32
 		er1 := rows.Scan(&action)
 		if er1 != nil {
 			return actionNone
 		}
 		permissions = permissions | action
+	}
+	if !exist {
+		return actionNone
 	}
 	if permissions == actionNone {
 		return actionAll
