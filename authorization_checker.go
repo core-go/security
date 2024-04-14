@@ -30,10 +30,10 @@ type AuthorizationChecker struct {
 	CheckWhitelist    func(id string, token string) bool
 }
 
-func NewDefaultAuthorizationChecker(verifyToken func(string, string) (bool, string, map[string]interface{}, int64, int64, error), secret string, key string, options ...string) *AuthorizationChecker {
+func NewAuthorizationChecker(verifyToken func(string, string) (bool, string, map[string]interface{}, int64, int64, error), secret string, key string, options ...string) *AuthorizationChecker {
 	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", nil, nil, key, options...)
 }
-func NewAuthorizationChecker(verifyToken func(string, string) (bool, string, map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, key string, options ...string) *AuthorizationChecker {
+func NewAuthorizationCheckerWithBlacklist(verifyToken func(string, string) (bool, string, map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, key string, options ...string) *AuthorizationChecker {
 	return NewAuthorizationCheckerWithIp(verifyToken, secret, "", checkToken, nil, key, options...)
 }
 func NewAuthorizationCheckerWithWhitelist(verifyToken func(string, string) (bool, string, map[string]interface{}, int64, int64, error), secret string, checkToken func(string, string, time.Time) string, checkWhitelist func(string, string) bool, key string, options ...string) *AuthorizationChecker {
